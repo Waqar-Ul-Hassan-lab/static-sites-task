@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — Lost in the Abyss | ABYSSAL</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,400&family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── RESET & ROOT ─────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --black:   #010810;
+      --deep:    #04111f;
+      --navy:    #071628;
+      --accent:  #00d4ff;
+      --accent2: #0099cc;
+      --gold:    #c9a84c;
+      --white:   #f0f4f8;
+      --muted:   #6a8aaa;
+      --danger:  #ff3c6e;
+      --font-display: 'Bebas Neue', sans-serif;
+      --font-serif:   'Cormorant Garamond', serif;
+      --font-body:    'DM Sans', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--font-body);
+      font-weight: 300;
+      overflow: hidden;
+      cursor: none;
+    }
+
+    /* ── CUSTOM CURSOR ────────────────────────────── */
+    .cursor {
+      width: 8px; height: 8px;
+      background: var(--danger);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: background 0.3s;
+    }
+    .cursor-follower {
+      width: 32px; height: 32px;
+      border: 1px solid rgba(255, 60, 110, 0.5);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: width 0.3s, height 0.3s, border-color 0.3s;
+    }
+    .cursor-follower.hovering {
+      width: 52px; height: 52px;
+      border-color: var(--gold);
+    }
+
+    /* ── CANVAS BACKGROUND ────────────────────────── */
+    #bg-canvas {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+    }
+
+    /* ── SONAR RING ───────────────────────────────── */
+    .sonar-wrap {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none; z-index: 1;
+    }
+    .sonar-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid rgba(0, 212, 255, 0.12);
+      animation: sonarPulse 4s ease-out infinite;
+    }
+    .sonar-ring:nth-child(1) { width: 200px;  height: 200px;  animation-delay: 0s;   border-color: rgba(255,60,110,0.2); }
+    .sonar-ring:nth-child(2) { width: 400px;  height: 400px;  animation-delay: 0.8s; }
+    .sonar-ring:nth-child(3) { width: 650px;  height: 650px;  animation-delay: 1.6s; }
+    .sonar-ring:nth-child(4) { width: 950px;  height: 950px;  animation-delay: 2.4s; }
+    .sonar-ring:nth-child(5) { width: 1300px; height: 1300px; animation-delay: 3.2s; border-color: rgba(0,212,255,0.04); }
+
+    /* ── NAV ──────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      padding: 24px 60px;
+      display: flex; align-items: center; justify-content: space-between;
+      z-index: 100;
+      background: linear-gradient(to bottom, rgba(1,8,16,0.8), transparent);
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 26px; letter-spacing: 6px;
+      background: linear-gradient(135deg, #fff 40%, var(--accent));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-decoration: none;
+    }
+    .nav-back {
+      font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--muted); text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 22px; border-radius: 2px;
+      transition: color 0.3s, border-color 0.3s, background 0.3s;
+    }
+    .nav-back:hover { color: var(--white); border-color: var(--accent); background: rgba(0,212,255,0.06); }
+
+    /* ── MAIN CONTENT ─────────────────────────────── */
+    main {
+      position: relative; z-index: 10;
+      height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 0 40px;
+    }
+
+    /* ── SUBMARINE SVG ────────────────────────────── */
+    .sub-wrap {
+      position: relative;
+      margin-bottom: 52px;
+      animation: subFloat 6s ease-in-out infinite;
+    }
+    .sub-svg {
+      width: 120px; height: auto;
+      filter: drop-shadow(0 0 24px rgba(0,212,255,0.35));
+    }
+    /* Signal beam from sub */
+    .sub-beam {
+      position: absolute;
+      bottom: -10px; left: 50%;
+      transform: translateX(-50%);
+      width: 2px; height: 60px;
+      background: linear-gradient(to bottom, rgba(0,212,255,0.6), transparent);
+      border-radius: 2px;
+      animation: beamPulse 2s ease-in-out infinite;
+    }
+    .sub-beacon {
+      position: absolute;
+      top: 22px; right: 22px;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+      box-shadow: 0 0 12px var(--danger);
+      animation: beaconBlink 1.2s ease-in-out infinite;
+    }
+
+    /* ── 404 NUMBER ───────────────────────────────── */
+    .error-code {
+      font-family: var(--font-display);
+      font-size: clamp(120px, 22vw, 280px);
+      line-height: 0.85;
+      letter-spacing: -4px;
+      position: relative;
+      animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.1s both;
+    }
+    .error-code .digit {
+      display: inline-block;
+      position: relative;
+    }
+    .error-code .digit-4 {
+      background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.3));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .error-code .digit-0 {
+      color: transparent;
+      -webkit-text-stroke: 2px var(--accent);
+      text-shadow: none;
+      filter: drop-shadow(0 0 20px rgba(0,212,255,0.5));
+      animation: zeroSpin 12s linear infinite;
+      display: inline-block;
+    }
+
+    /* ── DIVIDER LINE ─────────────────────────────── */
+    .divider {
+      display: flex; align-items: center; gap: 20px;
+      margin: 28px 0;
+      animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.25s both;
+    }
+    .divider-line {
+      flex: 1; max-width: 80px; height: 1px;
+      background: linear-gradient(to right, transparent, var(--accent));
+    }
+    .divider-line.right { background: linear-gradient(to left, transparent, var(--accent)); }
+    .divider-label {
+      font-size: 10px; letter-spacing: 4px; text-transform: uppercase;
+      color: var(--danger);
+    }
+
+    /* ── HEADING ──────────────────────────────────── */
+    .error-title {
+      font-family: var(--font-serif);
+      font-size: clamp(26px, 4vw, 48px);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--white);
+      margin-bottom: 16px;
+      animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.35s both;
+    }
+
+    /* ── DEPTH READING ────────────────────────────── */
+    .depth-reading {
+      display: flex; align-items: center; gap: 12px;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 15px; letter-spacing: 5px;
+      color: var(--accent);
+      margin-bottom: 20px;
+      animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.4s both;
+    }
+    .depth-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--danger);
+      box-shadow: 0 0 8px var(--danger);
+      animation: beaconBlink 1.2s ease-in-out infinite;
+    }
+
+    /* ── DESC ─────────────────────────────────────── */
+    .error-desc {
+      font-size: 16px; line-height: 1.75;
+      color: var(--muted);
+      max-width: 480px;
+      margin-bottom: 52px;
+      animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.5s both;
+    }
+
+    /* ── ACTIONS ──────────────────────────────────── */
+    .actions {
+      display: flex; gap: 16px; align-items: center;
+      flex-wrap: wrap; justify-content: center;
+      animation: slideUp 0.9s cubic-bezier(0.16,1,0.3,1) 0.6s both;
+    }
+
+    .btn-surface {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 15px 36px;
+      background: var(--accent);
+      color: var(--black);
+      text-decoration: none;
+      font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+      font-weight: 500; border-radius: 2px;
+      transition: all 0.3s; position: relative; overflow: hidden;
+    }
+    .btn-surface::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: rgba(255,255,255,0.2);
+      transform: translateX(-100%);
+      transition: transform 0.4s;
+    }
+    .btn-surface:hover::after { transform: translateX(0); }
+    .btn-surface:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,212,255,0.35); }
+
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 15px 36px;
+      background: transparent;
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 2px;
+      transition: all 0.3s;
+    }
+    .btn-outline:hover { color: var(--white); border-color: rgba(255,255,255,0.3); }
+
+    /* ── BOTTOM STATUS BAR ────────────────────────── */
+    .status-bar {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      height: 44px;
+      background: rgba(4,17,31,0.85);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(0,212,255,0.1);
+      display: flex; align-items: center;
+      padding: 0 60px;
+      gap: 40px;
+      z-index: 100;
+      animation: slideUpBar 0.8s cubic-bezier(0.16,1,0.3,1) 0.8s both;
+    }
+    .status-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--muted);
+    }
+    .status-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+    }
+    .status-dot.red   { background: var(--danger); box-shadow: 0 0 6px var(--danger); animation: beaconBlink 1.4s ease-in-out infinite; }
+    .status-dot.amber { background: var(--gold);   box-shadow: 0 0 6px var(--gold);   animation: beaconBlink 2s ease-in-out infinite 0.5s; }
+    .status-dot.green { background: #00ff80;       box-shadow: 0 0 6px #00ff80; }
+    .status-time {
+      margin-left: auto;
+      font-family: var(--font-display);
+      font-size: 13px; letter-spacing: 3px;
+      color: var(--accent); opacity: 0.7;
+    }
+
+    /* ── CORNER DECORATIONS ───────────────────────── */
+    .corner {
+      position: fixed;
+      width: 40px; height: 40px;
+      z-index: 100; pointer-events: none;
+      opacity: 0.3;
+    }
+    .corner-tl { top: 80px; left: 20px; border-top: 1px solid var(--accent); border-left: 1px solid var(--accent); }
+    .corner-tr { top: 80px; right: 20px; border-top: 1px solid var(--accent); border-right: 1px solid var(--accent); }
+    .corner-bl { bottom: 60px; left: 20px; border-bottom: 1px solid var(--accent); border-left: 1px solid var(--accent); }
+    .corner-br { bottom: 60px; right: 20px; border-bottom: 1px solid var(--accent); border-right: 1px solid var(--accent); }
+
+    /* ── GLITCH TEXT EFFECT ───────────────────────── */
+    .glitch-wrap {
+      position: relative; display: inline-block;
+    }
+    .glitch-wrap::before,
+    .glitch-wrap::after {
+      content: attr(data-text);
+      position: absolute; top: 0; left: 0;
+      font-family: var(--font-display);
+      font-size: inherit;
+      letter-spacing: inherit;
+      line-height: inherit;
+    }
+    .glitch-wrap::before {
+      color: var(--danger);
+      clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+      animation: glitch1 4s infinite steps(1);
+      opacity: 0;
+    }
+    .glitch-wrap::after {
+      color: var(--accent);
+      clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+      animation: glitch2 4s infinite steps(1);
+      opacity: 0;
+    }
+
+    /* ── KEYFRAMES ────────────────────────────────── */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideUpBar {
+      from { opacity: 0; transform: translateY(100%); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes sonarPulse {
+      0%   { transform: scale(0.3); opacity: 0.8; }
+      80%  { opacity: 0.1; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+    @keyframes subFloat {
+      0%, 100% { transform: translateY(0px) rotate(-1deg); }
+      50%       { transform: translateY(-14px) rotate(1deg); }
+    }
+    @keyframes beaconBlink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.1; }
+    }
+    @keyframes beamPulse {
+      0%, 100% { opacity: 1; transform: translateX(-50%) scaleY(1); }
+      50%       { opacity: 0.2; transform: translateX(-50%) scaleY(0.5); }
+    }
+    @keyframes zeroSpin {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    @keyframes glitch1 {
+      0%,  90%  { opacity: 0; transform: translate(0); }
+      91%        { opacity: 1; transform: translate(-3px, 1px); }
+      92%        { opacity: 0; }
+      93%        { opacity: 1; transform: translate(3px, -1px); }
+      94%, 100%  { opacity: 0; }
+    }
+    @keyframes glitch2 {
+      0%,  94%  { opacity: 0; transform: translate(0); }
+      95%        { opacity: 1; transform: translate(3px, 2px); }
+      96%        { opacity: 0; }
+      97%        { opacity: 1; transform: translate(-3px, -1px); }
+      98%, 100%  { opacity: 0; }
+    }
+
+    /* ── SCROLLBAR ────────────────────────────────── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--accent2); border-radius: 2px; }
+
+    /* ── SELECTION ────────────────────────────────── */
+    ::selection { background: rgba(0,212,255,0.2); color: var(--white); }
+  </style>
+</head>
+<body>
+
+  <!-- Custom Cursor -->
+  <div class="cursor" id="cursor"></div>
+  <div class="cursor-follower" id="cursor-follower"></div>
+
+  <!-- Canvas background -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Sonar rings -->
+  <div class="sonar-wrap">
+    <div class="sonar-ring"></div>
+    <div class="sonar-ring"></div>
+    <div class="sonar-ring"></div>
+    <div class="sonar-ring"></div>
+    <div class="sonar-ring"></div>
+  </div>
+
+  <!-- Corner decorations -->
+  <div class="corner corner-tl"></div>
+  <div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div>
+  <div class="corner corner-br"></div>
+
+  <!-- Navigation -->
+  <nav>
+    <a href="index.html" class="nav-logo">ABYSSAL</a>
+    <a href="index.html" class="nav-back">← Return to Surface</a>
+  </nav>
+
+  <!-- Main error content -->
+  <main>
+
+    <!-- Submarine illustration -->
+    <div class="sub-wrap">
+      <div class="sub-beacon"></div>
+      <svg class="sub-svg" viewBox="0 0 160 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Body -->
+        <ellipse cx="78" cy="50" rx="62" ry="22" fill="#071628" stroke="rgba(0,212,255,0.4)" stroke-width="1.5"/>
+        <!-- Conning tower -->
+        <rect x="60" y="26" width="30" height="24" rx="6" fill="#04111f" stroke="rgba(0,212,255,0.35)" stroke-width="1.2"/>
+        <!-- Periscope -->
+        <rect x="76" y="10" width="3" height="18" rx="1.5" fill="rgba(0,212,255,0.6)"/>
+        <circle cx="77.5" cy="10" r="4" fill="#04111f" stroke="rgba(0,212,255,0.5)" stroke-width="1.2"/>
+        <!-- Portholes -->
+        <circle cx="55" cy="50" r="5" fill="#04111f" stroke="rgba(0,212,255,0.4)" stroke-width="1"/>
+        <circle cx="55" cy="50" r="2.5" fill="rgba(0,212,255,0.15)"/>
+        <circle cx="72" cy="50" r="5" fill="#04111f" stroke="rgba(0,212,255,0.4)" stroke-width="1"/>
+        <circle cx="72" cy="50" r="2.5" fill="rgba(0,212,255,0.15)"/>
+        <circle cx="90" cy="50" r="5" fill="#04111f" stroke="rgba(0,212,255,0.4)" stroke-width="1"/>
+        <circle cx="90" cy="50" r="2.5" fill="rgba(0,212,255,0.15)"/>
+        <!-- Propeller -->
+        <ellipse cx="18" cy="43" rx="3" ry="9" fill="rgba(0,212,255,0.25)" stroke="rgba(0,212,255,0.3)" stroke-width="1"/>
+        <ellipse cx="18" cy="57" rx="3" ry="9" fill="rgba(0,212,255,0.25)" stroke="rgba(0,212,255,0.3)" stroke-width="1"/>
+        <rect x="14" y="48" width="8" height="4" rx="2" fill="#071628" stroke="rgba(0,212,255,0.4)" stroke-width="1"/>
+        <!-- Nose light -->
+        <circle cx="140" cy="50" r="4" fill="rgba(255,60,110,0.8)"/>
+        <circle cx="140" cy="50" r="8" fill="rgba(255,60,110,0.15)"/>
+        <!-- Fins -->
+        <polygon points="100,72 130,72 110,60" fill="rgba(0,212,255,0.2)" stroke="rgba(0,212,255,0.3)" stroke-width="1"/>
+        <polygon points="100,28 130,28 110,40" fill="rgba(0,212,255,0.2)" stroke="rgba(0,212,255,0.3)" stroke-width="1"/>
+      </svg>
+      <div class="sub-beam"></div>
+    </div>
+
+    <!-- 404 -->
+    <div class="error-code">
+      <span class="digit digit-4">4</span><span class="digit digit-0 glitch-wrap" data-text="0">0</span><span class="digit digit-4">4</span>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-label">Signal Lost</span>
+      <div class="divider-line right"></div>
+    </div>
+
+    <!-- Title -->
+    <h1 class="error-title">You've Drifted into Uncharted Waters</h1>
+
+    <!-- Depth -->
+    <div class="depth-reading">
+      <div class="depth-dot"></div>
+      <span id="depth-display">DEPTH: —,— m</span>
+      <div class="depth-dot"></div>
+    </div>
+
+    <!-- Description -->
+    <p class="error-desc">
+      The page you're looking for has sunk beyond our sonar range.
+      It may have been moved, removed, or never existed — much like
+      the countless things still undiscovered in the deep.
+    </p>
+
+    <!-- Actions -->
+    <div class="actions">
+      <a href="index.html" class="btn-surface">
+        ↑ Ascend to Surface
+      </a>
+      <a href="index.html#expeditions" class="btn-outline">
+        View Expeditions →
+      </a>
+    </div>
+  </main>
+
+  <!-- Status bar -->
+  <div class="status-bar">
+    <div class="status-item">
+      <div class="status-dot red"></div>
+      <span>Page Not Found</span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot amber"></div>
+      <span>Sonar: No Contact</span>
+    </div>
+    <div class="status-item">
+      <div class="status-dot green"></div>
+      <span>Vessel: Operational</span>
+    </div>
+    <div class="status-time" id="status-time">00:00:00</div>
+  </div>
+
+  <script>
+    // ── CURSOR ─────────────────────────────────────────────
+    const cursor = document.getElementById('cursor');
+    const follower = document.getElementById('cursor-follower');
+    let mx = 0, my = 0, fx = 0, fy = 0;
+
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      cursor.style.left = mx + 'px';
+      cursor.style.top  = my + 'px';
+    });
+
+    (function trackFollower() {
+      fx += (mx - fx) * 0.1;
+      fy += (my - fy) * 0.1;
+      follower.style.left = fx + 'px';
+      follower.style.top  = fy + 'px';
+      requestAnimationFrame(trackFollower);
+    })();
+
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => follower.classList.add('hovering'));
+      el.addEventListener('mouseleave', () => follower.classList.remove('hovering'));
+    });
+
+    // ── CANVAS — deep particle field ───────────────────────
+    (function () {
+      const canvas = document.getElementById('bg-canvas');
+      const ctx = canvas.getContext('2d');
+      let W, H;
+
+      function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      // Particles
+      const particles = Array.from({ length: 180 }, () => ({
+        x: Math.random(),
+        y: Math.random(),
+        r: Math.random() * 1.8 + 0.2,
+        vx: (Math.random() - 0.5) * 0.0003,
+        vy: (Math.random() - 0.5) * 0.0002,
+        o: Math.random() * 0.5 + 0.05,
+        do: (Math.random() * 0.008 + 0.002) * (Math.random() > 0.5 ? 1 : -1),
+        hue: Math.random() > 0.85 ? 340 : Math.random() > 0.5 ? 195 : 215,
+      }));
+
+      // Warning scan line
+      let scanY = 0;
+
+      function draw() {
+        // Background gradient
+        const grad = ctx.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, '#010d1a');
+        grad.addColorStop(0.5, '#010810');
+        grad.addColorStop(1, '#000408');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+
+        // Scan line
+        scanY = (scanY + 0.8) % H;
+        const scanGrad = ctx.createLinearGradient(0, scanY - 60, 0, scanY + 60);
+        scanGrad.addColorStop(0,   'rgba(255,60,110,0)');
+        scanGrad.addColorStop(0.5, 'rgba(255,60,110,0.04)');
+        scanGrad.addColorStop(1,   'rgba(255,60,110,0)');
+        ctx.fillStyle = scanGrad;
+        ctx.fillRect(0, scanY - 60, W, 120);
+
+        // Central glow (where sonar rings come from)
+        const cg = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, H * 0.5);
+        cg.addColorStop(0,   'rgba(255,60,110,0.06)');
+        cg.addColorStop(0.4, 'rgba(0,212,255,0.03)');
+        cg.addColorStop(1,   'transparent');
+        ctx.fillStyle = cg;
+        ctx.fillRect(0, 0, W, H);
+
+        // Particles
+        particles.forEach(p => {
+          p.x += p.vx; p.y += p.vy;
+          p.o += p.do;
+          if (p.o > 0.7 || p.o < 0.02) p.do *= -1;
+          if (p.x < 0) p.x = 1; if (p.x > 1) p.x = 0;
+          if (p.y < 0) p.y = 1; if (p.y > 1) p.y = 0;
+
+          ctx.beginPath();
+          ctx.arc(p.x * W, p.y * H, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${p.hue}, 100%, 75%, ${p.o})`;
+          ctx.fill();
+        });
+
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // ── ANIMATED DEPTH COUNTER ─────────────────────────────
+    (function () {
+      const el = document.getElementById('depth-display');
+      let depth = 0;
+      const target = 4278;
+      let direction = 1;
+
+      setInterval(() => {
+        depth += direction * (Math.random() * 12 + 3);
+        if (depth >= target + 200) direction = -1;
+        if (depth <= target - 200) direction = 1;
+        depth = Math.max(0, Math.floor(depth));
+        el.textContent = `DEPTH: ${depth.toLocaleString()} m`;
+      }, 120);
+    })();
+
+    // ── CLOCK ──────────────────────────────────────────────
+    (function () {
+      const el = document.getElementById('status-time');
+      function tick() {
+        const now = new Date();
+        const h = String(now.getHours()).padStart(2,'0');
+        const m = String(now.getMinutes()).padStart(2,'0');
+        const s = String(now.getSeconds()).padStart(2,'0');
+        el.textContent = `${h}:${m}:${s} UTC`;
+      }
+      tick();
+      setInterval(tick, 1000);
+    })();
+
+    // ── KONAMI / EASTER EGG ─────────────────────────────────
+    // Press 'S' to send an SOS signal burst
+    document.addEventListener('keydown', e => {
+      if (e.key.toLowerCase() === 's') {
+        document.querySelectorAll('.sonar-ring').forEach((r, i) => {
+          r.style.borderColor = 'rgba(255,60,110,0.5)';
+          setTimeout(() => r.style.borderColor = '', 600 + i * 200);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
